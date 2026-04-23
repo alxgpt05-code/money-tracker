@@ -9,6 +9,19 @@ interface LoginResponse {
   error?: string;
 }
 
+async function parseLoginResponse(response: Response): Promise<LoginResponse> {
+  const contentType = response.headers.get("content-type") ?? "";
+  if (contentType.includes("application/json")) {
+    return (await response.json()) as LoginResponse;
+  }
+
+  const rawText = await response.text();
+  return {
+    ok: false,
+    error: rawText ? "Сервер вернул некорректный ответ" : "Пустой ответ от сервера",
+  };
+}
+
 export function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -29,9 +42,17 @@ export function LoginForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const payload = (await response.json()) as LoginResponse;
+      const payload = await parseLoginResponse(response);
 
       if (!response.ok || !payload.ok) {
+        if (response.status === 400 || response.status === 401) {
+          setErrorText(payload.error ?? "Неверная почта или пароль");
+          return;
+        }
+        if (response.status >= 500) {
+          setErrorText(payload.error ?? "Ошибка сервера. Попробуйте позже");
+          return;
+        }
         setErrorText(payload.error ?? "Не удалось войти");
         return;
       }

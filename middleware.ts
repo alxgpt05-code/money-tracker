@@ -5,6 +5,16 @@ const protectedPaths = ["/dashboard", "/add", "/history", "/analytics", "/accoun
 const authPaths = ["/login", "/register", "/forgot-password"];
 const SESSION_COOKIE = "capital_session";
 const CLIENT_USER_ID_COOKIE = "capital_user_id";
+const AUTH_DEBUG = process.env.AUTH_DEBUG === "true";
+
+function middlewareDebug(step: string, payload?: Record<string, unknown>) {
+  if (!AUTH_DEBUG) return;
+  if (payload) {
+    console.info(`[middleware] ${step}`, payload);
+    return;
+  }
+  console.info(`[middleware] ${step}`);
+}
 
 async function verifySessionValue(raw: string | undefined): Promise<string | null> {
   try {
@@ -45,14 +55,24 @@ export async function middleware(request: NextRequest) {
     const userIdCookie = request.cookies.get(CLIENT_USER_ID_COOKIE)?.value;
     const isProtected = protectedPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
     const isAuth = authPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+    middlewareDebug("session state", {
+      pathname,
+      hasSessionCookie: Boolean(session),
+      hasValidSession,
+      sessionUserId: sessionUserId ?? null,
+      isProtected,
+      isAuth,
+    });
 
     if (isProtected && !hasValidSession) {
+      middlewareDebug("redirect to /login: no valid session", { pathname });
       const response = NextResponse.redirect(new URL("/login", request.url));
       if (session) response.cookies.delete(SESSION_COOKIE);
       return response;
     }
 
     if (isAuth && hasValidSession) {
+      middlewareDebug("redirect auth page to /dashboard", { pathname, sessionUserId });
       const url = new URL("/dashboard", request.url);
       const response = NextResponse.redirect(url);
       if (sessionUserId && userIdCookie !== sessionUserId) {
@@ -68,6 +88,7 @@ export async function middleware(request: NextRequest) {
     }
 
     if (hasValidSession && sessionUserId && userIdCookie !== sessionUserId) {
+      middlewareDebug("sync client user cookie", { sessionUserId });
       const response = NextResponse.next();
       response.cookies.set(CLIENT_USER_ID_COOKIE, sessionUserId, {
         httpOnly: false,
@@ -79,6 +100,7 @@ export async function middleware(request: NextRequest) {
       return response;
     }
 
+    middlewareDebug("pass request", { pathname, hasValidSession });
     return NextResponse.next();
   } catch (error) {
     console.error("[middleware] unhandled runtime error", error);

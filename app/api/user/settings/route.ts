@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
+import { getDatabaseUnavailableMessage } from "@/lib/db/error-messages";
 import {
   DEFAULT_NOTIFICATION_SETTINGS,
   SESSION_COOKIE,
@@ -41,7 +42,7 @@ export async function GET(request: Request) {
     console.error("[user/settings][GET] error", error);
     if (error instanceof Prisma.PrismaClientInitializationError) {
       return NextResponse.json(
-        { ok: false, error: "База данных недоступна. Проверьте локальный PostgreSQL." },
+        { ok: false, error: getDatabaseUnavailableMessage() },
         { status: 500 },
       );
     }
@@ -98,7 +99,7 @@ export async function POST(request: Request) {
     console.error("[user/settings][POST] error", error);
     if (error instanceof Prisma.PrismaClientInitializationError) {
       return NextResponse.json(
-        { ok: false, error: "База данных недоступна. Проверьте локальный PostgreSQL." },
+        { ok: false, error: getDatabaseUnavailableMessage() },
         { status: 500 },
       );
     }

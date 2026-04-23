@@ -2,12 +2,18 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
+import { getDatabaseUnavailableMessage } from "@/lib/db/error-messages";
 import { CLIENT_USER_ID_COOKIE, SESSION_COOKIE, signSessionValue } from "@/lib/auth/dev-auth";
 
 const AUTH_DEBUG = process.env.AUTH_DEBUG === "true";
 
-function isSecureCookie() {
-  return process.env.NODE_ENV === "production";
+function isSecureCookie(request: Request) {
+  if (process.env.NODE_ENV !== "production") return false;
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  if (forwardedProto) {
+    return forwardedProto.split(",")[0]?.trim() === "https";
+  }
+  return new URL(request.url).protocol === "https:";
 }
 
 function normalizeEmail(value: string): string {
@@ -39,7 +45,7 @@ export async function POST(request: Request) {
     if (!process.env.DATABASE_URL) {
       authDebug("missing DATABASE_URL");
       return NextResponse.json(
-        { ok: false, error: "DATABASE_URL не задан. Проверьте файл .env" },
+        { ok: false, error: getDatabaseUnavailableMessage() },
         { status: 500 },
       );
     }
@@ -97,11 +103,13 @@ export async function POST(request: Request) {
       },
     });
     authDebug("session creation", { userId: user.id });
+    const secureCookie = isSecureCookie(request);
+    authDebug("cookie policy", { secureCookie });
     const response = NextResponse.json({ ok: true });
     response.cookies.set(SESSION_COOKIE, signSessionValue(user.id), {
       httpOnly: true,
       sameSite: "lax",
-      secure: isSecureCookie(),
+      secure: secureCookie,
       path: "/",
       maxAge: 60 * 60 * 24 * 30,
     });
@@ -109,7 +117,7 @@ export async function POST(request: Request) {
     response.cookies.set(CLIENT_USER_ID_COOKIE, user.id, {
       httpOnly: false,
       sameSite: "lax",
-      secure: isSecureCookie(),
+      secure: secureCookie,
       path: "/",
       maxAge: 60 * 60 * 24 * 30,
     });
@@ -131,11 +139,7 @@ export async function POST(request: Request) {
 
     if (error instanceof Prisma.PrismaClientInitializationError) {
       return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "База данных недоступна. Запустите Docker Desktop, затем выполните: npm run db:up && npm run prisma:migrate && npm run prisma:seed",
-        },
+        { ok: false, error: getDatabaseUnavailableMessage() },
         { status: 500 },
       );
     }
