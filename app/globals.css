@@ -1,0 +1,157 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-sans: var(--font-montserrat), "Montserrat", "Segoe UI Variable", "Helvetica Neue", "Arial Nova", sans-serif;
+  --glass-card-bg: rgba(16, 23, 18, 0.68);
+  --glass-panel-bg: rgba(11, 18, 13, 0.74);
+  --glass-soft-bg: rgba(0, 0, 0, 0.18);
+  --glass-border: rgba(255, 255, 255, 0.07);
+  --glass-highlight: rgba(255, 255, 255, 0.03);
+  --text-strong: #f5f8f3;
+  --text-base: rgba(236, 242, 234, 0.88);
+  --text-muted: rgba(183, 200, 186, 0.62);
+}
+
+* {
+  border-color: hsl(0 0% 100% / 0.08);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, rgba(182, 255, 77, 0.13), transparent 34%),
+    radial-gradient(circle at 85% 10%, rgba(110, 243, 165, 0.07), transparent 24%),
+    radial-gradient(circle at 30% 100%, rgba(122, 255, 196, 0.04), transparent 24%),
+    #090b08;
+  color: var(--text-base);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* iOS Safari auto-zooms focused fields when font-size is below 16px. */
+input:not([type="hidden"]),
+textarea,
+select {
+  font-size: 16px;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+::selection {
+  background: rgba(182, 255, 77, 0.3);
+}
+
+@layer components {
+  .glass-card {
+    @apply rounded-[28px] border backdrop-blur-xl;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.012), rgba(255, 255, 255, 0)),
+      var(--glass-card-bg);
+    border-color: var(--glass-border);
+    box-shadow:
+      inset 0 1px 0 var(--glass-highlight),
+      0 18px 48px rgba(0, 0, 0, 0.3);
+  }
+
+  .glass-panel {
+    @apply rounded-[28px] border backdrop-blur-2xl;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0)),
+      var(--glass-panel-bg);
+    border-color: var(--glass-border);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.03),
+      0 12px 36px rgba(0, 0, 0, 0.28);
+  }
+
+  .panel {
+    @apply glass-panel;
+  }
+
+  .metric-card {
+    @apply glass-card transition duration-200 hover:-translate-y-0.5;
+  }
+
+  .chart-card-surface {
+    @apply glass-card;
+    background:
+      radial-gradient(circle at top right, rgba(182, 255, 77, 0.06), transparent 28%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.012), rgba(255, 255, 255, 0)),
+      var(--glass-card-bg);
+  }
+
+  .accent-button {
+    @apply rounded-2xl bg-primary text-primary-foreground shadow-glow transition duration-200 hover:brightness-105 active:scale-[0.985];
+  }
+
+  .glass-button {
+    @apply rounded-2xl border text-foreground transition duration-200 hover:bg-white/[0.06] active:scale-[0.985];
+    background: rgba(12, 16, 13, 0.72);
+    border-color: var(--glass-border);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  }
+
+  .app-page {
+    @apply max-w-full space-y-5;
+  }
+
+  .page-title {
+    @apply strong-text text-2xl font-semibold tracking-tight sm:text-3xl;
+  }
+
+  .page-subtitle {
+    @apply muted-text text-sm;
+  }
+
+  .muted-text {
+    color: var(--text-muted);
+  }
+
+  .strong-text {
+    color: var(--text-strong);
+  }
+
+  .touch-carousel {
+    @apply block w-full max-w-full overflow-x-auto overscroll-x-contain;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .touch-carousel::-webkit-scrollbar {
+    display: none;
+  }
+
+  .touch-carousel-track {
+    @apply flex w-max flex-nowrap snap-x snap-mandatory gap-3 pb-1;
+  }
+}
+
+@keyframes money-o-shake {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  25% {
+    transform: translate3d(-1px, 0.5px, 0);
+  }
+  50% {
+    transform: translate3d(1px, -0.5px, 0);
+  }
+  75% {
+    transform: translate3d(-0.6px, -0.4px, 0);
+  }
+  100% {
+    transform: translate3d(0.8px, 0.4px, 0);
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "/(app)/analytics/page": "app/(app)/analytics/page.js",
+  "/(app)/history/page": "app/(app)/history/page.js",
+  "/(app)/expenses/new/page": "app/(app)/expenses/new/page.js",
+  "/(app)/notifications/page": "app/(app)/notifications/page.js",
+  "/(app)/dashboard/page": "app/(app)/dashboard/page.js"
+}

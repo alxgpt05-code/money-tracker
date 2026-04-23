@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id                   String                @id @default(cuid())
+  passwordHash         String
+  createdAt            DateTime              @default(now())
+  expenses             Expense[]
+  notificationSettings NotificationSettings?
+  pushSubscriptions    PushSubscription[]
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  color    String
+  expenses Expense[]
+}
+
+model Expense {
+  id         String   @id @default(cuid())
+  userId     String
+  categoryId String
+  amount     Decimal  @db.Decimal(12, 2)
+  date       DateTime @db.Date
+  note       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([userId, date])
+  @@index([categoryId])
+}
+
+model NotificationSettings {
+  id       String  @id @default(cuid())
+  userId   String  @unique
+  enabled  Boolean @default(false)
+  time     String  @default("22:00")
+  timezone String  @default("Europe/Moscow")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

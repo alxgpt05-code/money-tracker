@@ -1,0 +1,32 @@
+{
+  "version": 3,
+  "middleware": {
+    "/": {
+      "files": [
+        "server/edge-runtime-webpack.js",
+        "server/middleware.js"
+      ],
+      "name": "middleware",
+      "page": "/",
+      "matchers": [
+        {
+          "regexp": "^(?:\\/(_next\\/data\\/[^/]{1,}))?(?:\\/((?!api\\/jobs\\/send-daily-reminders).*))(\\.json)?[\\/#\\?]?$",
+          "originalSource": "/((?!api/jobs/send-daily-reminders).*)"
+        }
+      ],
+      "wasm": [],
+      "assets": [],
+      "env": {
+        "__NEXT_BUILD_ID": "mK40ftUVWII669lyEyJwv",
+        "NEXT_SERVER_ACTIONS_ENCRYPTION_KEY": "W9Urhwe+JQWnDECgrtG7KOEVjBU0E0dnJqge8RJEgXM=",
+        "__NEXT_PREVIEW_MODE_ID": "e042c9eeaefbf1c8eeb8d3d1bf886648",
+        "__NEXT_PREVIEW_MODE_ENCRYPTION_KEY": "b0ce4415731563983f7791d620e8cc1b4ff465ebe06fa046391444e2febb46bb",
+        "__NEXT_PREVIEW_MODE_SIGNING_KEY": "1f6e61cd5240417604207710806191079623fbf8ebb0946b1d106588718cb613"
+      }
+    }
+  },
+  "functions": {},
+  "sortedMiddleware": [
+    "/"
+  ]
+}

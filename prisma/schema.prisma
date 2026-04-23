@@ -1,0 +1,283 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "darwin", "darwin-arm64"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Currency {
+  RUB
+}
+
+enum AccountType {
+  CARD
+  SAVINGS
+  DEPOSIT
+  PORTFOLIO
+  CASH
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+  COUPON
+  SALARY
+  ADVANCE
+  SIDE_INCOME
+  ADJUSTMENT
+  SAVINGS_TOPUP
+  DEPOSIT_TOPUP
+  BALANCE_UPDATE
+}
+
+enum MonthlyInterestType {
+  SIMPLE
+  COMPOUND
+  MANUAL
+}
+
+enum ForecastPeriod {
+  THREE_MONTHS
+  SIX_MONTHS
+  TWELVE_MONTHS
+}
+
+model User {
+  id             String             @id @default(cuid())
+  email          String             @unique
+  passwordHash   String
+  name           String
+  baseCurrency   Currency           @default(RUB)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  wallets        Wallet[]
+  categories     Category[]
+  forecasts      ForecastSnapshot[]
+  salarySchedules SalarySchedule[]
+  expenses       Expense[]
+  expenseCategories ExpenseCategory[]
+  monthlyBudgets MonthlyBudget[]
+  notificationSettings NotificationSettings?
+}
+
+model Wallet {
+  id             String             @id @default(cuid())
+  userId         String
+  name           String
+  slug           String             @unique
+  currency       Currency           @default(RUB)
+  description    String?
+  trackingStartDate DateTime        @default(now())
+  isArchived      Boolean           @default(false)
+  sortOrder      Int                @default(0)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accounts       Account[]
+  transactions   Transaction[]
+  categories     Category[]
+  snapshots      MonthlySnapshot[]
+  forecasts      ForecastSnapshot[]
+  salarySchedules SalarySchedule[]
+
+  @@index([userId])
+}
+
+model Account {
+  id                   String                @id @default(cuid())
+  walletId             String
+  name                 String
+  type                 AccountType
+  currency             Currency              @default(RUB)
+  initialBalance       Decimal               @db.Decimal(18, 2)
+  currentBalance       Decimal               @db.Decimal(18, 2)
+  color                String                @default("#b6ff4d")
+  currentInterestRate  Decimal?              @db.Decimal(5, 2)
+  interestType         MonthlyInterestType?
+  isArchived           Boolean               @default(false)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  wallet               Wallet                @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  outgoingTransactions Transaction[]         @relation("sourceAccount")
+  incomingTransactions Transaction[]         @relation("destinationAccount")
+  snapshots            MonthlySnapshot[]
+  interestHistory      InterestRateHistory[]
+
+  @@index([walletId])
+}
+
+model Transaction {
+  id                   String          @id @default(cuid())
+  walletId             String
+  sourceAccountId      String?
+  destinationAccountId String?
+  categoryId           String?
+  type                 TransactionType
+  amount               Decimal         @db.Decimal(18, 2)
+  note                 String?
+  transactionDate      DateTime
+  isRecurring          Boolean         @default(false)
+  affectsCapital       Boolean         @default(true)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+  wallet               Wallet          @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  sourceAccount        Account?        @relation("sourceAccount", fields: [sourceAccountId], references: [id], onDelete: SetNull)
+  destinationAccount   Account?        @relation("destinationAccount", fields: [destinationAccountId], references: [id], onDelete: SetNull)
+  category             Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  @@index([walletId, transactionDate])
+  @@index([sourceAccountId])
+  @@index([destinationAccountId])
+}
+
+model MonthlySnapshot {
+  id                String    @id @default(cuid())
+  walletId          String
+  accountId         String
+  monthDate         DateTime
+  calculatedBalance Decimal   @db.Decimal(18, 2)
+  actualBalance     Decimal?  @db.Decimal(18, 2)
+  deviation         Decimal?  @db.Decimal(18, 2)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  wallet            Wallet    @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  account           Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([accountId, monthDate])
+  @@index([walletId, monthDate])
+}
+
+model SalarySchedule {
+  id          String    @id @default(cuid())
+  userId      String
+  walletId    String
+  title       String
+  amount      Decimal   @db.Decimal(18, 2)
+  dayOfMonth  Int
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet      Wallet    @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([userId])
+}
+
+model InterestRateHistory {
+  id               String              @id @default(cuid())
+  accountId        String
+  rate             Decimal             @db.Decimal(5, 2)
+  interestType     MonthlyInterestType
+  effectiveFrom    DateTime
+  note             String?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  account          Account             @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([accountId, effectiveFrom])
+}
+
+model Category {
+  id              String         @id @default(cuid())
+  userId          String
+  walletId        String?
+  name            String
+  slug            String
+  kind            TransactionType
+  isFixed         Boolean        @default(false)
+  color           String         @default("#b6ff4d")
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet          Wallet?        @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  transactions    Transaction[]
+
+  @@unique([userId, slug])
+  @@index([walletId])
+}
+
+model ForecastSnapshot {
+  id                    String          @id @default(cuid())
+  userId                String
+  walletId              String?
+  period                ForecastPeriod
+  projectedCapital      Decimal         @db.Decimal(18, 2)
+  averageMonthlyIncome  Decimal         @db.Decimal(18, 2)
+  averageMonthlyExpense Decimal         @db.Decimal(18, 2)
+  expenseTrend          Decimal         @db.Decimal(8, 4)
+  fixedExpenses         Decimal         @db.Decimal(18, 2)
+  variableExpenses      Decimal         @db.Decimal(18, 2)
+  recurringIncome       Decimal         @db.Decimal(18, 2)
+  snapshotDate          DateTime        @default(now())
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  wallet                Wallet?         @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([userId, snapshotDate])
+  @@index([walletId, period])
+}
+
+model ExpenseCategory {
+  id          String    @id @default(cuid())
+  userId      String?
+  name        String
+  color       String?
+  isSystem    Boolean   @default(false)
+  isArchived  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  expenses    Expense[]
+
+  @@unique([userId, name])
+  @@index([userId])
+  @@index([isSystem])
+  @@index([isArchived])
+}
+
+model MonthlyBudget {
+  id          String    @id @default(cuid())
+  userId      String
+  year        Int
+  month       Int
+  amount      Decimal   @db.Decimal(18, 2)
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, year, month])
+  @@index([userId, year, month])
+}
+
+model Expense {
+  id                String           @id @default(cuid())
+  userId            String
+  categoryId        String
+  amount            Decimal          @db.Decimal(18, 2)
+  spentAt           DateTime
+  note              String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category          ExpenseCategory  @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  @@index([userId, spentAt])
+  @@index([categoryId])
+}
+
+model NotificationSettings {
+  id                  String   @id @default(cuid())
+  userId              String   @unique
+  dailyReminderEnabled Boolean @default(false)
+  dailyReminderTime   String   @default("20:00")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
