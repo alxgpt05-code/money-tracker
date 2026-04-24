@@ -57,12 +57,20 @@ input::-webkit-inner-spin-button {
 }
 
 @layer components {
+  .mobile-screen-shell {
+    @apply mx-auto w-full max-w-[430px] px-3 pb-32 pt-safe-page;
+  }
+
+  .auth-screen-shell {
+    @apply mx-auto flex min-h-screen w-full max-w-[430px] flex-col px-4 pb-10 pt-safe-auth;
+  }
+
   .pt-safe-page {
-    padding-top: calc(var(--safe-area-top) + 1.5rem);
+    padding-top: calc(var(--safe-area-top) + 1.75rem);
   }
 
   .pt-safe-auth {
-    padding-top: calc(var(--safe-area-top) + 1.25rem);
+    padding-top: calc(var(--safe-area-top) + 1.5rem);
   }
 
   .glass-card {

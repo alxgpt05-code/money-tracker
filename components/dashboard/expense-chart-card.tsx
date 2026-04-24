@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { DashboardMonthData, MonthlyExpensePoint } from "@/types/expense";
 import {
-  formatDayAndWeekday,
+  formatDayKeyAndWeekday,
   formatExpenseRubles,
   formatMonthShort,
 } from "@/lib/utils/formatters";
@@ -169,7 +169,7 @@ export function ExpenseChartCard({ monthData, monthlySeries }: ExpenseChartCardP
   const activeValue = mode === CHART_MODES.DAYS ? selectedDay?.amount ?? 0 : selectedMonth?.amount ?? 0;
   const activeLabel = mode === CHART_MODES.DAYS
     ? selectedDay
-      ? formatDayAndWeekday(selectedDay.dateIso)
+      ? formatDayKeyAndWeekday(selectedDay.dateKey)
       : "-"
     : selectedMonth?.monthLabel ?? "-";
 
@@ -206,7 +206,7 @@ export function ExpenseChartCard({ monthData, monthlySeries }: ExpenseChartCardP
 
                 return (
                   <button
-                    key={point.dateIso}
+                    key={point.dateKey}
                     ref={(node) => {
                       dayItemRefs.current[index] = node;
                     }}

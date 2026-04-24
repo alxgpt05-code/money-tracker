@@ -78,6 +78,20 @@ export function formatDayAndWeekday(dateIso: string): string {
   return `${DAY_MONTH_FORMATTER_UTC.format(date)} ${formatWeekdayShortUtc(date)}`;
 }
 
+export function formatDayKeyAndWeekday(dateKey: string): string {
+  const [yearRaw, monthRaw, dayRaw] = dateKey.split("-");
+  const year = Number(yearRaw);
+  const month = Number(monthRaw);
+  const day = Number(dayRaw);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+    return "-";
+  }
+
+  const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+  if (!isValidDate(date)) return "-";
+  return `${DAY_MONTH_FORMATTER_UTC.format(date)} ${formatWeekdayShortUtc(date)}`;
+}
+
 export function formatDayMonthTitle(date: Date): string {
   if (!isValidDate(date)) return "-";
   const raw = DAY_MONTH_TITLE_FORMATTER.format(date);

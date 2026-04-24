@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { DashboardMonthData } from "@/types/expense";
 import { formatExpenseRubles } from "@/lib/utils/formatters";
-import { getLocalDayKey, getUtcDayKey } from "@/lib/utils/expense-date";
+import { getLocalDayKey } from "@/lib/utils/expense-date";
 
 interface ExpenseHistoryCardProps {
   monthData: DashboardMonthData;
@@ -17,29 +17,25 @@ export function ExpenseHistoryCard({ monthData, isCurrentMonth }: ExpenseHistory
 
   const groups = monthData.history
     .filter((group) => {
-      const groupDate = new Date(group.dateIso);
-      if (!Number.isFinite(groupDate.getTime())) return false;
-      const groupKey = getUtcDayKey(groupDate);
+      const groupKey = group.dateKey;
       return groupKey === todayKey || groupKey === yesterdayKey;
     })
     .map((group) => {
-      const groupDate = new Date(group.dateIso);
-      const groupKey = Number.isFinite(groupDate.getTime()) ? getUtcDayKey(groupDate) : "";
+      const groupKey = group.dateKey;
       const label = groupKey === todayKey ? "Сегодня" : "Вчера";
 
       return {
         ...group,
         label,
-        items: [...group.items].sort((a, b) => b.dateIso.localeCompare(a.dateIso)),
+        items: [...group.items].sort((a, b) => {
+          if (a.dateKey === b.dateKey) {
+            return b.dateIso.localeCompare(a.dateIso);
+          }
+          return b.dateKey.localeCompare(a.dateKey);
+        }),
       };
     })
-    .sort((a, b) => {
-      const aDate = new Date(a.dateIso);
-      const bDate = new Date(b.dateIso);
-      const aKey = Number.isFinite(aDate.getTime()) ? getUtcDayKey(aDate) : "";
-      const bKey = Number.isFinite(bDate.getTime()) ? getUtcDayKey(bDate) : "";
-      return bKey.localeCompare(aKey);
-    });
+    .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
 
   return (
     <section className="rounded-[28px] border border-white/5 bg-[linear-gradient(160deg,rgba(255,255,255,0.05),rgba(255,255,255,0.015)_35%,rgba(12,12,13,0.94))] p-4 shadow-[0_20px_44px_rgba(0,0,0,0.42)]">

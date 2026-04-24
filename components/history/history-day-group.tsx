@@ -5,28 +5,36 @@ import { formatWeekdayShortUtc } from "@/lib/utils/formatters";
 import { HistoryItem } from "@/components/history/history-item";
 
 interface HistoryDayGroupProps {
-  dateIso: string;
+  dateKey: string;
   items: ExpenseHistoryItem[];
   onEdit: (item: ExpenseHistoryItem) => void;
   onRequestDelete: (item: ExpenseHistoryItem) => void;
   deletingExpenseId?: string | null;
 }
 
-function formatGroupTitle(dateIso: string): string {
-  const date = new Date(dateIso);
+function formatGroupTitle(dateKey: string): string {
+  const [yearRaw, monthRaw, dayRaw] = dateKey.split("-");
+  const year = Number(yearRaw);
+  const month = Number(monthRaw);
+  const day = Number(dayRaw);
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) {
+    return "—";
+  }
+
+  const date = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
   if (!Number.isFinite(date.getTime())) {
     return "—";
   }
-  const day = date.getUTCDate();
+  const dayNumber = date.getUTCDate();
   const weekday = formatWeekdayShortUtc(date).toUpperCase();
-  return `${day} — ${weekday}`;
+  return `${dayNumber} — ${weekday}`;
 }
 
-export function HistoryDayGroup({ dateIso, items, onEdit, onRequestDelete, deletingExpenseId = null }: HistoryDayGroupProps) {
+export function HistoryDayGroup({ dateKey, items, onEdit, onRequestDelete, deletingExpenseId = null }: HistoryDayGroupProps) {
   return (
     <section>
       <h2 className="mb-2 px-1 text-base font-medium leading-none tracking-tight text-white/50">
-        {formatGroupTitle(dateIso)}
+        {formatGroupTitle(dateKey)}
       </h2>
 
       <div className="space-y-2.5">

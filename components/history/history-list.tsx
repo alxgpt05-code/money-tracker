@@ -8,7 +8,6 @@ import { EditExpenseModal } from "@/components/history/edit-expense-modal";
 import { HistoryDayGroup } from "@/components/history/history-day-group";
 import { BottomNav } from "@/components/shared/bottom-nav";
 import type { DashboardMockData, ExpenseCategory, ExpenseHistoryGroup, ExpenseHistoryItem } from "@/types/expense";
-import { getUtcDayKey } from "@/lib/utils/expense-date";
 
 interface HistoryListProps {
   data: DashboardMockData;
@@ -23,16 +22,15 @@ function resolveInitialMonthIndex(data: DashboardMockData): number {
 
 function sortGroups(groups: ExpenseHistoryGroup[]): ExpenseHistoryGroup[] {
   return [...groups]
-    .sort((a, b) => {
-      const aDate = new Date(a.dateIso);
-      const bDate = new Date(b.dateIso);
-      const aKey = Number.isFinite(aDate.getTime()) ? getUtcDayKey(aDate) : "";
-      const bKey = Number.isFinite(bDate.getTime()) ? getUtcDayKey(bDate) : "";
-      return bKey.localeCompare(aKey);
-    })
+    .sort((a, b) => b.dateKey.localeCompare(a.dateKey))
     .map((group) => ({
       ...group,
-      items: [...group.items].sort((a, b) => b.dateIso.localeCompare(a.dateIso)),
+      items: [...group.items].sort((a, b) => {
+        if (a.dateKey === b.dateKey) {
+          return b.dateIso.localeCompare(a.dateIso);
+        }
+        return b.dateKey.localeCompare(a.dateKey);
+      }),
     }));
 }
 
@@ -101,7 +99,7 @@ export function HistoryList({ data }: HistoryListProps) {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#060607] text-white">
-      <div className="mx-auto w-full max-w-[430px] px-3 pb-32 pt-safe-page">
+      <div className="mobile-screen-shell">
         <div className="space-y-3">
           <MonthSwitcher
             monthLabel={selectedMonth.monthLabel}
@@ -120,7 +118,7 @@ export function HistoryList({ data }: HistoryListProps) {
               {groupedHistory.map((group) => (
                 <HistoryDayGroup
                   key={group.id}
-                  dateIso={group.dateIso}
+                  dateKey={group.dateKey}
                   items={group.items}
                   onEdit={(item) => {
                     setEditingExpense(item);

@@ -58,6 +58,7 @@ function buildDailyPoints(year: number, month: number): DailyExpensePoint[] {
 
     return {
       dateIso: pointDate.toISOString(),
+      dateKey: `${year}-${pad2(month)}-${pad2(day)}`,
       day,
       weekdayShort: formatWeekdayShortUtc(pointDate),
       amount: 0,
@@ -99,6 +100,7 @@ function buildHistory(
       category,
       amount: expense.amount,
       dateIso: expense.spentAt.toISOString(),
+      dateKey: dayKey,
     };
 
     if (!grouped.has(dayKey)) {
@@ -122,6 +124,7 @@ function buildHistory(
         id: `group-${dayKey}`,
         label: `${day}/${month}`,
         dateIso: date.toISOString(),
+        dateKey: dayKey,
         items: [...items].sort((a, b) => b.dateIso.localeCompare(a.dateIso)),
       } satisfies ExpenseHistoryGroup;
     })

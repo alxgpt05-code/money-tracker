@@ -53,12 +53,7 @@ export async function POST(request: Request) {
 
     const amount = Number(body?.amount);
     const spentAtDayKeyInput = typeof body?.spentAtDayKey === "string" ? body.spentAtDayKey.trim() : "";
-    const legacyDateOnly = typeof body?.spentAt === "string" ? body.spentAt.trim() : "";
-    const resolvedDayKey = parseDayKey(spentAtDayKeyInput)
-      ? spentAtDayKeyInput
-      : parseDayKey(legacyDateOnly)
-        ? legacyDateOnly
-        : "";
+    const resolvedDayKey = parseDayKey(spentAtDayKeyInput) ? spentAtDayKeyInput : "";
     const spentAt = normalizeExpenseDateForStorage(resolvedDayKey);
 
     if (!Number.isFinite(amount) || amount <= 0) {

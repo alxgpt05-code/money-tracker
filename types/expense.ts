@@ -38,6 +38,7 @@ export interface UpdateExpenseInput {
 
 export interface DailyExpensePoint {
   dateIso: string;
+  dateKey: string;
   day: number;
   weekdayShort: string;
   amount: number;
@@ -54,12 +55,14 @@ export interface ExpenseHistoryItem {
   category: ExpenseCategory;
   amount: number;
   dateIso: string;
+  dateKey: string;
 }
 
 export interface ExpenseHistoryGroup {
   id: string;
   label: string;
   dateIso: string;
+  dateKey: string;
   items: ExpenseHistoryItem[];
 }
 

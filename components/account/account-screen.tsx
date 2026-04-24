@@ -76,7 +76,7 @@ export function AccountScreen() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#060607] text-white">
-      <div className="mx-auto w-full max-w-[430px] px-3 pb-32 pt-safe-page">
+      <div className="mobile-screen-shell">
         <section className="rounded-[28px] border border-white/10 bg-[linear-gradient(160deg,rgba(255,255,255,0.045),rgba(15,15,17,0.95))] p-5 shadow-[0_24px_46px_rgba(0,0,0,0.45)]">
           <h1 className="text-2xl font-semibold tracking-tight">Аккаунт</h1>
           <p className="mt-1 text-sm text-white/65">Управляйте логином и безопасностью аккаунта.</p>

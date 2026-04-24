@@ -101,6 +101,7 @@ export function parseStoredExpenseDate(value: string | Date): Date | null {
     return dayKeyToLocalDate(key);
   }
 
+  // Preferred format is always YYYY-MM-DD.
   const byDayKey = dayKeyToLocalDate(value);
   if (byDayKey) {
     return byDayKey;
