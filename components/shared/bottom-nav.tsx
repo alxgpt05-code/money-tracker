@@ -85,8 +85,8 @@ export function BottomNav() {
         </div>
       ) : null}
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(20,20,22,0.56)] px-4 pb-[calc(env(safe-area-inset-bottom,0px)+0.7rem)] pt-3 shadow-[0_-8px_30px_rgba(0,0,0,0.28)] backdrop-blur-2xl">
-        <div className="mx-auto grid w-full max-w-[430px] grid-cols-3 items-center">
+      <nav className="fixed inset-x-0 bottom-0 z-50 px-4 pb-[calc(env(safe-area-inset-bottom,0px)+0.55rem)] pt-3">
+        <div className="mx-auto grid w-full max-w-[430px] grid-cols-3 items-center rounded-[30px] border border-white/15 bg-[linear-gradient(165deg,rgba(42,42,46,0.36),rgba(18,18,20,0.24))] px-2.5 py-2.5 shadow-[0_12px_38px_rgba(0,0,0,0.34),inset_0_1px_0_rgba(255,255,255,0.1)] backdrop-blur-2xl">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
@@ -99,7 +99,7 @@ export function BottomNav() {
                 item.center
                   ? "h-16 w-16 bg-[#A9E67C] text-black"
                   : active
-                    ? "text-white"
+                    ? "text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.18)]"
                     : "text-white/90 hover:bg-white/5"
               }`}
               aria-label={item.label}
