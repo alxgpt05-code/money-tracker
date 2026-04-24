@@ -105,7 +105,7 @@ export function AnalyticsScreen({ data }: AnalyticsScreenProps) {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#060607] text-white">
-      <div className="mx-auto w-full max-w-[430px] px-3 pb-32 pt-6">
+      <div className="mx-auto w-full max-w-[430px] px-3 pb-32 pt-safe-page">
         <div className="space-y-3">
           <MonthSwitcher
             monthLabel={selectedMonth.monthLabel}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { DashboardMonthData } from "@/types/expense";
 import { formatExpenseRubles } from "@/lib/utils/formatters";
+import { getLocalDayKey, getUtcDayKey } from "@/lib/utils/expense-date";
 
 interface ExpenseHistoryCardProps {
   monthData: DashboardMonthData;
@@ -9,32 +10,35 @@ interface ExpenseHistoryCardProps {
 
 export function ExpenseHistoryCard({ monthData, isCurrentMonth }: ExpenseHistoryCardProps) {
   const today = new Date();
-  const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
-  const yesterdayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1).getTime();
+  const todayKey = getLocalDayKey(today);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayKey = getLocalDayKey(yesterday);
 
   const groups = monthData.history
     .filter((group) => {
       const groupDate = new Date(group.dateIso);
-      const groupStart = new Date(groupDate.getFullYear(), groupDate.getMonth(), groupDate.getDate()).getTime();
-      return groupStart === todayStart || groupStart === yesterdayStart;
+      if (!Number.isFinite(groupDate.getTime())) return false;
+      const groupKey = getUtcDayKey(groupDate);
+      return groupKey === todayKey || groupKey === yesterdayKey;
     })
     .map((group) => {
       const groupDate = new Date(group.dateIso);
-      const groupStart = new Date(groupDate.getFullYear(), groupDate.getMonth(), groupDate.getDate()).getTime();
-      const label = groupStart === todayStart ? "Сегодня" : "Вчера";
+      const groupKey = Number.isFinite(groupDate.getTime()) ? getUtcDayKey(groupDate) : "";
+      const label = groupKey === todayKey ? "Сегодня" : "Вчера";
 
       return {
         ...group,
         label,
-        items: [...group.items].sort((a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime()),
+        items: [...group.items].sort((a, b) => b.dateIso.localeCompare(a.dateIso)),
       };
     })
     .sort((a, b) => {
       const aDate = new Date(a.dateIso);
       const bDate = new Date(b.dateIso);
-      const aStart = new Date(aDate.getFullYear(), aDate.getMonth(), aDate.getDate()).getTime();
-      const bStart = new Date(bDate.getFullYear(), bDate.getMonth(), bDate.getDate()).getTime();
-      return bStart - aStart;
+      const aKey = Number.isFinite(aDate.getTime()) ? getUtcDayKey(aDate) : "";
+      const bKey = Number.isFinite(bDate.getTime()) ? getUtcDayKey(bDate) : "";
+      return bKey.localeCompare(aKey);
     });
 
   return (

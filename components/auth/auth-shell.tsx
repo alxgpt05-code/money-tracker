@@ -10,7 +10,7 @@ interface AuthShellProps {
 export function AuthShell({ children, topActionLabel, topActionHref }: AuthShellProps) {
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#060607] text-white">
-      <div className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col px-4 pb-10 pt-5">
+      <div className="mx-auto flex min-h-screen w-full max-w-[430px] flex-col px-4 pb-10 pt-safe-auth">
         <header className="flex justify-end">
           {topActionLabel && topActionHref ? (
             <Link

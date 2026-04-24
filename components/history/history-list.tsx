@@ -8,6 +8,7 @@ import { EditExpenseModal } from "@/components/history/edit-expense-modal";
 import { HistoryDayGroup } from "@/components/history/history-day-group";
 import { BottomNav } from "@/components/shared/bottom-nav";
 import type { DashboardMockData, ExpenseCategory, ExpenseHistoryGroup, ExpenseHistoryItem } from "@/types/expense";
+import { getUtcDayKey } from "@/lib/utils/expense-date";
 
 interface HistoryListProps {
   data: DashboardMockData;
@@ -22,10 +23,16 @@ function resolveInitialMonthIndex(data: DashboardMockData): number {
 
 function sortGroups(groups: ExpenseHistoryGroup[]): ExpenseHistoryGroup[] {
   return [...groups]
-    .sort((a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime())
+    .sort((a, b) => {
+      const aDate = new Date(a.dateIso);
+      const bDate = new Date(b.dateIso);
+      const aKey = Number.isFinite(aDate.getTime()) ? getUtcDayKey(aDate) : "";
+      const bKey = Number.isFinite(bDate.getTime()) ? getUtcDayKey(bDate) : "";
+      return bKey.localeCompare(aKey);
+    })
     .map((group) => ({
       ...group,
-      items: [...group.items].sort((a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime()),
+      items: [...group.items].sort((a, b) => b.dateIso.localeCompare(a.dateIso)),
     }));
 }
 
@@ -94,7 +101,7 @@ export function HistoryList({ data }: HistoryListProps) {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#060607] text-white">
-      <div className="mx-auto w-full max-w-[430px] px-3 pb-32 pt-6">
+      <div className="mx-auto w-full max-w-[430px] px-3 pb-32 pt-safe-page">
         <div className="space-y-3">
           <MonthSwitcher
             monthLabel={selectedMonth.monthLabel}
@@ -147,7 +154,7 @@ export function HistoryList({ data }: HistoryListProps) {
             body: JSON.stringify({
               amount: payload.amount,
               categoryId: payload.categoryId,
-              spentAt: payload.spentAt,
+              spentAtDayKey: payload.spentAtDayKey,
             }),
           });
           const result = (await response.json()) as { ok: boolean; error?: string };

@@ -5,6 +5,7 @@ import { Check, X } from "lucide-react";
 import { DateSwitcher } from "@/components/add/date-switcher";
 import type { ExpenseCategory, ExpenseHistoryItem } from "@/types/expense";
 import { formatExpenseRubles, sanitizeNumericInput } from "@/lib/utils/formatters";
+import { getLocalDateKey, parseStoredExpenseDate } from "@/lib/utils/expense-date";
 
 interface EditExpenseModalProps {
   isOpen: boolean;
@@ -12,7 +13,7 @@ interface EditExpenseModalProps {
   categories: ExpenseCategory[];
   defaultCategoryId: string | null;
   onClose: () => void;
-  onSave: (payload: { expenseId: string; amount: number; categoryId: string; spentAt: string }) => Promise<void>;
+  onSave: (payload: { expenseId: string; amount: number; categoryId: string; spentAtDayKey: string }) => Promise<void>;
 }
 
 function normalizeDay(date: Date): Date {
@@ -39,7 +40,7 @@ export function EditExpenseModal({
     }
 
     const activeCategoryExists = categories.some((category) => category.id === expense.category.id);
-    setSelectedDate(normalizeDay(new Date(expense.dateIso)));
+    setSelectedDate(normalizeDay(parseStoredExpenseDate(expense.dateIso) ?? new Date(expense.dateIso)));
     setAmountRaw(String(expense.amount));
     setSelectedCategoryId(activeCategoryExists ? expense.category.id : defaultCategoryId);
     setErrorText("");
@@ -166,7 +167,7 @@ export function EditExpenseModal({
                     expenseId: expense.id,
                     amount,
                     categoryId,
-                    spentAt: selectedDate.toISOString(),
+                    spentAtDayKey: getLocalDateKey(selectedDate),
                   });
                 } catch (error) {
                   setErrorText(error instanceof Error ? error.message : "Не удалось сохранить");

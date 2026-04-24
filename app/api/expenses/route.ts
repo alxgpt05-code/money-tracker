@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { getRequestUserId } from "@/lib/auth/request-session";
+import { normalizeExpenseDateForStorage, parseDayKey } from "@/lib/utils/expense-date";
 
 const SYSTEM_OTHER_CATEGORY_NAME = "Прочее";
 
@@ -47,19 +48,28 @@ export async function POST(request: Request) {
     }
 
     const body = (await request.json().catch(() => null)) as
-      | { amount?: number; spentAt?: string; categoryId?: string }
+      | { amount?: number; spentAtDayKey?: string; spentAt?: string; categoryId?: string }
       | null;
 
     const amount = Number(body?.amount);
-    const spentAtRaw = body?.spentAt ?? "";
-    const spentAt = new Date(spentAtRaw);
+    const spentAtDayKeyInput = typeof body?.spentAtDayKey === "string" ? body.spentAtDayKey.trim() : "";
+    const legacyDateOnly = typeof body?.spentAt === "string" ? body.spentAt.trim() : "";
+    const resolvedDayKey = parseDayKey(spentAtDayKeyInput)
+      ? spentAtDayKeyInput
+      : parseDayKey(legacyDateOnly)
+        ? legacyDateOnly
+        : "";
+    const spentAt = normalizeExpenseDateForStorage(resolvedDayKey);
 
     if (!Number.isFinite(amount) || amount <= 0) {
       return NextResponse.json({ ok: false, error: "Введите сумму больше нуля" }, { status: 400 });
     }
 
-    if (Number.isNaN(spentAt.getTime())) {
-      return NextResponse.json({ ok: false, error: "Некорректная дата" }, { status: 400 });
+    if (!spentAt) {
+      return NextResponse.json(
+        { ok: false, error: "Некорректная дата. Передайте календарный день в формате YYYY-MM-DD." },
+        { status: 400 },
+      );
     }
 
     let categoryId: string;

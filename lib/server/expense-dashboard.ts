@@ -8,52 +8,64 @@ import type {
   MonthlyExpensePoint,
 } from "@/types/expense";
 import { prisma } from "@/lib/db/prisma";
-import { formatMonthLabel, formatWeekdayShort } from "@/lib/utils/formatters";
+import { formatMonthLabel, formatWeekdayShortUtc } from "@/lib/utils/formatters";
+import {
+  dayKeyToUtcDate,
+  getMonthKeyFromUtcDate,
+  getUtcDayKey,
+  getUtcYearMonth,
+} from "@/lib/utils/expense-date";
 
 const SYSTEM_OTHER_CATEGORY_NAME = "Прочее";
 
-function monthKey(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+function pad2(value: number): string {
+  return String(value).padStart(2, "0");
 }
 
-function startOfMonth(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
+function monthKeyFromParts(year: number, month: number): string {
+  return `${year}-${pad2(month)}`;
 }
 
-function addMonths(date: Date, diff: number): Date {
-  return new Date(date.getFullYear(), date.getMonth() + diff, 1);
+function startOfUtcMonth(year: number, month: number): Date {
+  return new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+}
+function monthAnchorUtcDate(year: number, month: number): Date {
+  return new Date(Date.UTC(year, month - 1, 1, 12, 0, 0, 0));
 }
 
-function getDaysInMonth(date: Date): number {
-  return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+function getUtcDaysInMonth(year: number, month: number): number {
+  return new Date(Date.UTC(year, month, 0, 0, 0, 0, 0)).getUTCDate();
 }
 
-function startOfDay(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+function addUtcMonths(year: number, month: number, diff: number): { year: number; month: number } {
+  const shifted = new Date(Date.UTC(year, month - 1 + diff, 1, 0, 0, 0, 0));
+  return {
+    year: shifted.getUTCFullYear(),
+    month: shifted.getUTCMonth() + 1,
+  };
 }
 
 function toCategoryMap(categories: ExpenseCategory[]): Map<string, ExpenseCategory> {
   return new Map(categories.map((category) => [category.id, category]));
 }
 
-function buildDailyPoints(monthDate: Date): DailyExpensePoint[] {
-  const days = getDaysInMonth(monthDate);
+function buildDailyPoints(year: number, month: number): DailyExpensePoint[] {
+  const days = getUtcDaysInMonth(year, month);
 
   return Array.from({ length: days }, (_, index) => {
     const day = index + 1;
-    const pointDate = new Date(monthDate.getFullYear(), monthDate.getMonth(), day);
+    const pointDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
 
     return {
       dateIso: pointDate.toISOString(),
       day,
-      weekdayShort: formatWeekdayShort(pointDate),
+      weekdayShort: formatWeekdayShortUtc(pointDate),
       amount: 0,
     };
   });
 }
 
 function buildHistory(
-  monthDate: Date,
   monthExpenses: Array<{ id: string; amount: number; spentAt: Date; categoryId: string }>,
   categories: ExpenseCategory[],
 ): ExpenseHistoryGroup[] {
@@ -71,9 +83,11 @@ function buildHistory(
   const grouped = new Map<string, ExpenseHistoryItem[]>();
 
   for (const expense of monthExpenses) {
-    const spent = new Date(expense.spentAt);
-    const dayStart = startOfDay(spent);
-    const key = dayStart.toISOString();
+    if (!Number.isFinite(expense.spentAt.getTime())) {
+      continue;
+    }
+
+    const dayKey = getUtcDayKey(expense.spentAt);
     const category = categoryMap.get(expense.categoryId) ?? systemOther;
 
     if (!category) {
@@ -84,38 +98,45 @@ function buildHistory(
       id: expense.id,
       category,
       amount: expense.amount,
-      dateIso: spent.toISOString(),
+      dateIso: expense.spentAt.toISOString(),
     };
 
-    if (!grouped.has(key)) {
-      grouped.set(key, []);
+    if (!grouped.has(dayKey)) {
+      grouped.set(dayKey, []);
     }
 
-    grouped.get(key)!.push(item);
+    grouped.get(dayKey)!.push(item);
   }
 
   return [...grouped.entries()]
-    .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
-    .map(([dateIso, items]) => {
-      const date = new Date(dateIso);
+    .sort(([a], [b]) => b.localeCompare(a))
+    .map(([dayKey, items]) => {
+      const date = dayKeyToUtcDate(dayKey);
+      if (!date) {
+        return null;
+      }
+
+      const [, month, day] = dayKey.split("-");
 
       return {
-        id: `group-${dateIso}`,
-        label: `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}`,
-        dateIso,
-        items: [...items].sort((a, b) => new Date(b.dateIso).getTime() - new Date(a.dateIso).getTime()),
-      };
-    });
+        id: `group-${dayKey}`,
+        label: `${day}/${month}`,
+        dateIso: date.toISOString(),
+        items: [...items].sort((a, b) => b.dateIso.localeCompare(a.dateIso)),
+      } satisfies ExpenseHistoryGroup;
+    })
+    .filter((group): group is ExpenseHistoryGroup => Boolean(group));
 }
 
 export async function getDashboardDataForUser(userId: string, referenceDate = new Date()): Promise<DashboardMockData> {
-  const currentMonthStart = startOfMonth(referenceDate);
-  const currentMonthKey = monthKey(currentMonthStart);
+  const { year: currentYear, month: currentMonth } = getUtcYearMonth(referenceDate);
+  const currentMonthKey = monthKeyFromParts(currentYear, currentMonth);
 
   const monthOffsets = [-5, -4, -3, -2, -1, 0];
-  const monthStarts = monthOffsets.map((offset) => addMonths(currentMonthStart, offset));
-  const rangeStart = monthStarts[0];
-  const rangeEnd = addMonths(currentMonthStart, 1);
+  const monthRange = monthOffsets.map((offset) => addUtcMonths(currentYear, currentMonth, offset));
+  const rangeStart = startOfUtcMonth(monthRange[0].year, monthRange[0].month);
+  const nextAfterCurrent = addUtcMonths(currentYear, currentMonth, 1);
+  const rangeEnd = startOfUtcMonth(nextAfterCurrent.year, nextAfterCurrent.month);
 
   const [expenses, budgets, categoriesRaw] = await Promise.all([
     prisma.expense.findMany({
@@ -171,46 +192,56 @@ export async function getDashboardDataForUser(userId: string, referenceDate = ne
 
   const budgetMap = new Map(
     budgets.map((budget) => [
-      `${budget.year}-${String(budget.month).padStart(2, "0")}`,
+      monthKeyFromParts(budget.year, budget.month),
       Number(budget.amount),
     ]),
   );
 
-  const months: DashboardMonthData[] = monthStarts.map((monthStart) => {
-    const key = monthKey(monthStart);
-    const monthExpenses = expenses.filter((expense) => {
-      const spent = new Date(expense.spentAt);
-      return spent.getFullYear() === monthStart.getFullYear() && spent.getMonth() === monthStart.getMonth();
-    });
+  const expensesByMonth = new Map<string, Array<{ id: string; amount: number; spentAt: Date; categoryId: string }>>();
+  for (const expense of expenses) {
+    if (!Number.isFinite(expense.spentAt.getTime())) {
+      continue;
+    }
 
-    const dailyExpenses = buildDailyPoints(monthStart);
+    const key = getMonthKeyFromUtcDate(expense.spentAt);
+    if (!expensesByMonth.has(key)) {
+      expensesByMonth.set(key, []);
+    }
+
+    expensesByMonth.get(key)!.push({
+      id: expense.id,
+      amount: Number(expense.amount),
+      spentAt: expense.spentAt,
+      categoryId: expense.categoryId,
+    });
+  }
+
+  const months: DashboardMonthData[] = monthRange.map(({ year, month }) => {
+    const key = monthKeyFromParts(year, month);
+    const monthExpenses = expensesByMonth.get(key) ?? [];
+
+    const dailyExpenses = buildDailyPoints(year, month);
     for (const expense of monthExpenses) {
-      const spent = new Date(expense.spentAt);
-      const index = spent.getDate() - 1;
+      if (!Number.isFinite(expense.spentAt.getTime())) {
+        continue;
+      }
+      const index = expense.spentAt.getUTCDate() - 1;
       if (dailyExpenses[index]) {
-        dailyExpenses[index].amount += Number(expense.amount);
+        dailyExpenses[index].amount += expense.amount;
       }
     }
 
     const totalExpenses = dailyExpenses.reduce((sum, point) => sum + point.amount, 0);
+    const monthAnchorDate = monthAnchorUtcDate(year, month);
 
     return {
       monthKey: key,
-      monthStartIso: monthStart.toISOString(),
-      monthLabel: formatMonthLabel(monthStart),
+      monthStartIso: monthAnchorDate.toISOString(),
+      monthLabel: formatMonthLabel(monthAnchorDate),
       budget: budgetMap.get(key) ?? null,
       totalExpenses,
       dailyExpenses,
-      history: buildHistory(
-        monthStart,
-        monthExpenses.map((expense) => ({
-          id: expense.id,
-          amount: Number(expense.amount),
-          spentAt: expense.spentAt,
-          categoryId: expense.categoryId,
-        })),
-        categories,
-      ),
+      history: buildHistory(monthExpenses, categories),
     };
   });
 
@@ -228,17 +259,19 @@ export async function getDashboardDataForUser(userId: string, referenceDate = ne
 }
 
 export function getEmptyDashboardData(referenceDate = new Date()): DashboardMockData {
-  const currentMonthStart = startOfMonth(referenceDate);
-  const currentMonthKey = monthKey(currentMonthStart);
+  const { year: currentYear, month: currentMonth } = getUtcYearMonth(referenceDate);
+  const currentMonthKey = monthKeyFromParts(currentYear, currentMonth);
   const monthOffsets = [-5, -4, -3, -2, -1, 0];
-  const monthStarts = monthOffsets.map((offset) => addMonths(currentMonthStart, offset));
+  const monthRange = monthOffsets.map((offset) => addUtcMonths(currentYear, currentMonth, offset));
 
-  const months: DashboardMonthData[] = monthStarts.map((monthStart) => {
-    const dailyExpenses = buildDailyPoints(monthStart);
+  const months: DashboardMonthData[] = monthRange.map(({ year, month }) => {
+    const dailyExpenses = buildDailyPoints(year, month);
+    const monthAnchorDate = monthAnchorUtcDate(year, month);
+
     return {
-      monthKey: monthKey(monthStart),
-      monthStartIso: monthStart.toISOString(),
-      monthLabel: formatMonthLabel(monthStart),
+      monthKey: monthKeyFromParts(year, month),
+      monthStartIso: monthAnchorDate.toISOString(),
+      monthLabel: formatMonthLabel(monthAnchorDate),
       budget: null,
       totalExpenses: 0,
       dailyExpenses,

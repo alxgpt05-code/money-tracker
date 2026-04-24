@@ -1,7 +1,7 @@
 "use client";
 
 import type { ExpenseHistoryItem } from "@/types/expense";
-import { formatWeekdayShort } from "@/lib/utils/formatters";
+import { formatWeekdayShortUtc } from "@/lib/utils/formatters";
 import { HistoryItem } from "@/components/history/history-item";
 
 interface HistoryDayGroupProps {
@@ -14,8 +14,11 @@ interface HistoryDayGroupProps {
 
 function formatGroupTitle(dateIso: string): string {
   const date = new Date(dateIso);
-  const day = date.getDate();
-  const weekday = formatWeekdayShort(date).toUpperCase();
+  if (!Number.isFinite(date.getTime())) {
+    return "—";
+  }
+  const day = date.getUTCDate();
+  const weekday = formatWeekdayShortUtc(date).toUpperCase();
   return `${day} — ${weekday}`;
 }
 

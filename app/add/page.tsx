@@ -13,6 +13,7 @@ import { BottomNav } from "@/components/shared/bottom-nav";
 import {
   formatDateInputValue,
 } from "@/lib/utils/formatters";
+import { getLocalDateKey } from "@/lib/utils/expense-date";
 import type { ExpenseCategory, MonthlyBudget } from "@/types/expense";
 
 function normalizeDay(date: Date): Date {
@@ -122,7 +123,7 @@ export default function AddExpensePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount,
-          spentAt: selectedDate.toISOString(),
+          spentAtDayKey: getLocalDateKey(selectedDate),
           categoryId,
         }),
       });
@@ -220,7 +221,7 @@ export default function AddExpensePage() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#060607] text-white">
-      <div className="mx-auto w-full max-w-[430px] px-3 pb-32 pt-6">
+      <div className="mx-auto w-full max-w-[430px] px-3 pb-32 pt-safe-page">
         <div className="space-y-3">
           <DateSwitcher
             date={selectedDate}

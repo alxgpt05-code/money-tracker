@@ -48,6 +48,9 @@ export function ExpenseChartCard({ monthData, monthlySeries }: ExpenseChartCardP
   const maxScrollableDayIndex = useMemo(() => {
     const monthStart = new Date(monthData.monthStartIso);
     const now = new Date();
+    if (!Number.isFinite(monthStart.getTime())) {
+      return Math.max(monthData.dailyExpenses.length - 1, 0);
+    }
     const isCurrentMonth =
       monthStart.getFullYear() === now.getFullYear() && monthStart.getMonth() === now.getMonth();
 
@@ -75,6 +78,11 @@ export function ExpenseChartCard({ monthData, monthlySeries }: ExpenseChartCardP
   useEffect(() => {
     const monthStart = new Date(monthData.monthStartIso);
     const now = new Date();
+    if (!Number.isFinite(monthStart.getTime())) {
+      setSelectedDayIndex(Math.max(monthData.dailyExpenses.length - 1, 0));
+      setSelectedMonthIndex(Math.max(monthlySeries.length - 1, 0));
+      return;
+    }
     const isCurrentMonth =
       monthStart.getFullYear() === now.getFullYear() && monthStart.getMonth() === now.getMonth();
     const initialDayIndex = isCurrentMonth
@@ -228,10 +236,11 @@ export function ExpenseChartCard({ monthData, monthlySeries }: ExpenseChartCardP
           </div>
         ) : (
           <div className="grid grid-cols-6 items-end gap-x-2">
-            {monthlySeries.map((point, index) => {
-              const isActive = index === selectedMonthIndex;
-              const date = new Date(point.monthStartIso);
-              return (
+              {monthlySeries.map((point, index) => {
+                const isActive = index === selectedMonthIndex;
+                const date = new Date(point.monthStartIso);
+                const monthLabel = Number.isFinite(date.getTime()) ? formatMonthShort(date) : "--";
+                return (
                 <button
                   key={point.monthStartIso}
                   type="button"
@@ -248,7 +257,7 @@ export function ExpenseChartCard({ monthData, monthlySeries }: ExpenseChartCardP
                       }}
                     />
                   </div>
-                  <p className="text-xs font-medium text-[#85858C]">{formatMonthShort(date)}</p>
+                  <p className="text-xs font-medium text-[#85858C]">{monthLabel}</p>
                 </button>
               );
             })}

@@ -12,6 +12,7 @@
   --text-strong: #f5f8f3;
   --text-base: rgba(236, 242, 234, 0.88);
   --text-muted: rgba(183, 200, 186, 0.62);
+  --safe-area-top: env(safe-area-inset-top, 0px);
 }
 
 * {
@@ -56,6 +57,14 @@ input::-webkit-inner-spin-button {
 }
 
 @layer components {
+  .pt-safe-page {
+    padding-top: calc(var(--safe-area-top) + 1.5rem);
+  }
+
+  .pt-safe-auth {
+    padding-top: calc(var(--safe-area-top) + 1.25rem);
+  }
+
   .glass-card {
     @apply rounded-[28px] border backdrop-blur-xl;
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.012), rgba(255, 255, 255, 0)),

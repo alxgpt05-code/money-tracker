@@ -1,20 +1,23 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { getRequestUserId } from "@/lib/auth/request-session";
+import { parseDayKey } from "@/lib/utils/expense-date";
 
 const SYSTEM_OTHER_CATEGORY_NAME = "Прочее";
 
-function parseDate(raw: string | null): Date {
-  if (!raw) {
-    return new Date();
+function resolveYearMonth(rawDayKey: string | null): { year: number; month: number } {
+  if (rawDayKey) {
+    const parsed = parseDayKey(rawDayKey);
+    if (parsed) {
+      return { year: parsed.year, month: parsed.month };
+    }
   }
 
-  const parsed = new Date(raw);
-  if (Number.isNaN(parsed.getTime())) {
-    return new Date();
-  }
-
-  return parsed;
+  const now = new Date();
+  return {
+    year: now.getFullYear(),
+    month: now.getMonth() + 1,
+  };
 }
 
 export async function GET(request: Request) {
@@ -25,9 +28,7 @@ export async function GET(request: Request) {
     }
 
     const url = new URL(request.url);
-    const selectedDate = parseDate(url.searchParams.get("date"));
-    const year = selectedDate.getFullYear();
-    const month = selectedDate.getMonth() + 1;
+    const { year, month } = resolveYearMonth(url.searchParams.get("date"));
 
     const [categoriesRaw, budget] = await Promise.all([
       prisma.expenseCategory.findMany({

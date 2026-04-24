@@ -26,13 +26,13 @@ export interface Expense {
 
 export interface CreateExpenseInput {
   amount: number;
-  spentAt: string;
+  spentAtDayKey: string;
   categoryId?: string;
 }
 
 export interface UpdateExpenseInput {
   amount: number;
-  spentAt: string;
+  spentAtDayKey: string;
   categoryId: string;
 }
 

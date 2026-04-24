@@ -186,7 +186,7 @@ export function SettingsScreen() {
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#060607] text-white">
-      <div className="mx-auto w-full max-w-[430px] px-3 pb-32 pt-6">
+      <div className="mx-auto w-full max-w-[430px] px-3 pb-32 pt-safe-page">
         <h1 className="px-1 text-2xl font-semibold tracking-tight">Настройки</h1>
 
         <section className="mt-4 rounded-2xl border border-white/10 bg-[#1B1C20] p-4">
