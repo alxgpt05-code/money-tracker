@@ -53,7 +53,13 @@ export function MobileDashboardScreen({ data }: MobileDashboardScreenProps) {
             onNext={() => canNext && setMonthIndex((prev) => prev + 1)}
           />
 
-          <SummaryCards monthlyExpenses={selectedMonth.totalExpenses} monthlyBudget={selectedMonth.budget} />
+          <SummaryCards
+            monthlyExpenses={selectedMonth.totalExpenses}
+            monthlyBudget={selectedMonth.budget}
+            monthData={selectedMonth}
+            previousMonthData={monthIndex > 0 ? dashboardData.months[monthIndex - 1] : null}
+            isCurrentMonth={isCurrentMonth}
+          />
 
           <ExpenseChartCard monthData={selectedMonth} monthlySeries={dashboardData.monthlyExpenses} />
 
