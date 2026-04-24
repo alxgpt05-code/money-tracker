@@ -1,7 +1,7 @@
 import { formatExpenseRubles, formatRubles } from "@/lib/utils/formatters";
 import type { DashboardMonthData } from "@/types/expense";
 import type { ReactNode } from "react";
-import { Banknote, Gift, Shield, Sparkles, Target, Wallet } from "lucide-react";
+import { Coins, Gift, Shield, Sparkles, Target, Wallet } from "lucide-react";
 
 interface SummaryCardsProps {
   monthlyExpenses: number;
@@ -92,11 +92,11 @@ export function SummaryCards({
           </div>
           <div className="mt-3 grid grid-cols-2 gap-3 text-left">
             <div className="flex items-center gap-2 text-[#A1A1A6]">
-              <Banknote className="h-4 w-4 text-[#9BE274]" />
+              <Wallet className="h-4 w-4 text-[#9BE274]" />
               <span className="text-[0.8rem] font-medium leading-none">Бюджет {monthlyBudget === null ? "—" : formatRubles(monthlyBudget)}</span>
             </div>
-            <div className="flex items-center justify-end gap-2 text-[#A1A1A6]">
-              <Wallet className="h-4 w-4 text-[#9BE274]" />
+            <div className="flex items-center justify-end gap-2 text-[#8D8D93]">
+              <Coins className="h-4 w-4 text-[#8D8D93]" />
               <span className="text-[0.8rem] font-medium leading-none">Осталось {remainingBudget === null ? "—" : formatRubles(remainingBudget)}</span>
             </div>
           </div>
@@ -104,24 +104,24 @@ export function SummaryCards({
       </Surface>
 
       <div className="grid grid-cols-3 gap-3">
-        <Surface className="relative flex min-h-[182px] flex-col px-3.5 pb-3.5 pt-3">
+        <Surface className="relative flex min-h-[172px] flex-col px-3.5 pb-3.5 pt-3">
           <div className="flex items-start gap-1 text-[#9BE274]">
             <Target className="h-6 w-6 stroke-[2.2]" />
             <Sparkles className="h-3.5 w-3.5 stroke-[2.2]" />
           </div>
-          <p className="mt-2 whitespace-nowrap text-[0.68rem] font-medium leading-[1.2] text-[#8D8D93]">На день по плану</p>
-          <p className="mt-auto overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(0.98rem,2.4vw,1.28rem)] font-medium leading-none tracking-[-0.01em] text-[#9BE274]">
+          <p className="mt-2 whitespace-nowrap text-[0.64rem] font-medium leading-[1.18] text-[#8D8D93]">На день по плану</p>
+          <p className="mt-4 overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(0.92rem,2.2vw,1.18rem)] font-medium leading-none tracking-[-0.01em] text-[#9BE274]">
             {dailyPlan === null ? "—" : formatRubles(dailyPlan)}
           </p>
         </Surface>
 
-        <Surface className="relative flex min-h-[182px] flex-col px-3.5 pb-3.5 pt-3">
+        <Surface className="relative flex min-h-[172px] flex-col px-3.5 pb-3.5 pt-3">
           <div className="flex items-start gap-1 text-[#9BE274]">
             <Shield className="h-6 w-6 stroke-[2.2]" />
             <Sparkles className="h-3.5 w-3.5 stroke-[2.2]" />
           </div>
-          <p className="mt-2 whitespace-nowrap text-[0.68rem] font-medium leading-[1.2] text-[#8D8D93]">Ср. расход в день</p>
-          <p className="mt-auto overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(0.98rem,2.4vw,1.28rem)] font-medium leading-none tracking-[-0.01em] text-[#9BE274]">
+          <p className="mt-2 whitespace-nowrap text-[0.64rem] font-medium leading-[1.18] text-[#8D8D93]">Ср. расход в день</p>
+          <p className="mt-4 overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(0.92rem,2.2vw,1.18rem)] font-medium leading-none tracking-[-0.01em] text-[#9BE274]">
             {formatRubles(averagePerDay)}
           </p>
           <span
@@ -133,13 +133,13 @@ export function SummaryCards({
           </span>
         </Surface>
 
-        <Surface className="relative flex min-h-[182px] flex-col px-3.5 pb-3.5 pt-3">
+        <Surface className="relative flex min-h-[172px] flex-col px-3.5 pb-3.5 pt-3">
           <div className="flex items-start gap-1 text-[#9BE274]">
             <Gift className="h-6 w-6 stroke-[2.2]" />
             <Sparkles className="h-3.5 w-3.5 stroke-[2.2]" />
           </div>
-          <p className="mt-2 whitespace-nowrap text-[0.68rem] font-medium leading-[1.2] text-[#8D8D93]">На радости</p>
-          <p className="mt-auto overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(0.98rem,2.4vw,1.28rem)] font-medium leading-none tracking-[-0.01em] text-[#9BE274]">
+          <p className="mt-2 whitespace-nowrap text-[0.64rem] font-medium leading-[1.18] text-[#8D8D93]">На радости</p>
+          <p className="mt-4 overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(0.92rem,2.2vw,1.18rem)] font-medium leading-none tracking-[-0.01em] text-[#9BE274]">
             {joyAmount === null ? "—" : formatRubles(Math.max(0, joyAmount))}
           </p>
         </Surface>

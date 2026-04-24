@@ -85,7 +85,7 @@ export function BottomNav() {
         </div>
       ) : null}
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/5 bg-[rgba(24,24,25,0.94)] px-4 pb-[calc(env(safe-area-inset-bottom,0px)+0.7rem)] pt-3 backdrop-blur-xl">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[rgba(20,20,22,0.56)] px-4 pb-[calc(env(safe-area-inset-bottom,0px)+0.7rem)] pt-3 shadow-[0_-8px_30px_rgba(0,0,0,0.28)] backdrop-blur-2xl">
         <div className="mx-auto grid w-full max-w-[430px] grid-cols-3 items-center">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
@@ -94,16 +94,16 @@ export function BottomNav() {
             return (
               <Link
                 key={item.href}
-                href={item.href}
-                className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full transition active:scale-95 ${
-                  item.center
-                    ? "h-16 w-16 bg-[#A9E67C] text-black"
-                    : active
-                      ? "bg-white/10 text-white"
-                      : "text-white/90 hover:bg-white/5"
-                }`}
-                aria-label={item.label}
-              >
+              href={item.href}
+              className={`mx-auto flex h-14 w-14 items-center justify-center rounded-full transition active:scale-95 ${
+                item.center
+                  ? "h-16 w-16 bg-[#A9E67C] text-black"
+                  : active
+                    ? "text-white"
+                    : "text-white/90 hover:bg-white/5"
+              }`}
+              aria-label={item.label}
+            >
                 <Icon className={item.center ? "h-8 w-8" : "h-7 w-7"} />
               </Link>
             );
