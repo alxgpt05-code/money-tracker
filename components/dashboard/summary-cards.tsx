@@ -42,22 +42,16 @@ export function SummaryCards({
   const elapsedDays = isCurrentMonth
     ? Math.min(Math.max(now.getDate(), 1), daysInMonth)
     : daysInMonth;
-  const remainingDaysIncludingToday = Math.max(daysInMonth - elapsedDays + 1, 1);
-  const remainingBudget = monthlyBudget === null ? 0 : monthlyBudget - monthlyExpenses;
+  const spentToDate = monthData.dailyExpenses
+    .slice(0, elapsedDays)
+    .reduce((sum, point) => sum + point.amount, 0);
 
-  const dailyPlan = monthlyBudget === null
-    ? null
-    : Math.max(0, roundMoney(remainingBudget / remainingDaysIncludingToday));
-  const averagePerDay = roundMoney(monthlyExpenses / Math.max(elapsedDays, 1));
+  const dailyPlanRaw = monthlyBudget === null ? null : monthlyBudget / daysInMonth;
+  const dailyPlan = dailyPlanRaw === null ? null : Math.max(0, roundMoney(dailyPlanRaw));
+  const averagePerDay = roundMoney(spentToDate / Math.max(elapsedDays, 1));
 
-  const basePlanPerDay = monthlyBudget === null ? null : monthlyBudget / daysInMonth;
-  const joyAmount = monthlyBudget === null || basePlanPerDay === null || remainingBudget <= 0
-    ? null
-    : roundMoney(
-        monthData.dailyExpenses
-          .slice(0, elapsedDays)
-          .reduce((sum, point) => sum + Math.max(0, basePlanPerDay - point.amount), 0),
-      );
+  const plannedToDate = dailyPlanRaw === null ? null : dailyPlanRaw * elapsedDays;
+  const joyAmount = plannedToDate === null ? null : roundMoney(Math.max(0, plannedToDate - spentToDate));
 
   const previousAveragePerDay = previousMonthData
     ? roundMoney(previousMonthData.totalExpenses / Math.max(previousMonthData.dailyExpenses.length, 1))
@@ -82,26 +76,26 @@ export function SummaryCards({
       <div className="grid grid-cols-3 gap-3">
         <Surface className="relative px-4 pb-4 pt-3.5">
           <div className="flex items-start gap-1 text-[#9BE274]">
-            <Target className="h-8 w-8 stroke-[2.3]" />
-            <Sparkles className="h-4 w-4 stroke-[2.2]" />
+            <Target className="h-6 w-6 stroke-[2.2]" />
+            <Sparkles className="h-3.5 w-3.5 stroke-[2.2]" />
           </div>
-          <p className="mt-2 text-[0.98rem] font-medium leading-[1.18] text-[#A1A1A6]">На день по плану</p>
-          <p className="mt-3 whitespace-nowrap text-[clamp(2rem,5.1vw,2.45rem)] font-medium leading-none tracking-[-0.01em] text-[#9BE274]">
+          <p className="mt-2 text-[0.58rem] font-medium leading-[1.16] text-[#8D8D93]">На день по плану</p>
+          <p className="mt-2 overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(1rem,2.6vw,1.35rem)] font-medium leading-none tracking-[-0.01em] text-[#9BE274]">
             {dailyPlan === null ? "—" : formatRubles(dailyPlan)}
           </p>
         </Surface>
 
         <Surface className="relative px-4 pb-4 pt-3.5">
           <div className="flex items-start gap-1 text-[#9BE274]">
-            <Shield className="h-8 w-8 stroke-[2.3]" />
-            <Sparkles className="h-4 w-4 stroke-[2.2]" />
+            <Shield className="h-6 w-6 stroke-[2.2]" />
+            <Sparkles className="h-3.5 w-3.5 stroke-[2.2]" />
           </div>
-          <p className="mt-2 text-[0.98rem] font-medium leading-[1.18] text-[#A1A1A6]">Средний расход в день</p>
-          <p className="mt-3 whitespace-nowrap text-[clamp(2rem,5.1vw,2.45rem)] font-medium leading-none tracking-[-0.01em] text-[#9BE274]">
+          <p className="mt-2 text-[0.58rem] font-medium leading-[1.16] text-[#8D8D93]">Средний расход в день</p>
+          <p className="mt-2 overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(1rem,2.6vw,1.35rem)] font-medium leading-none tracking-[-0.01em] text-[#9BE274]">
             {formatRubles(averagePerDay)}
           </p>
           <span
-            className={`absolute right-4 top-3 text-[1.05rem] font-medium leading-none ${
+            className={`absolute right-3 top-3 text-[0.72rem] font-medium leading-none ${
               trendState === "up" ? "text-[#E785BD]" : trendState === "down" ? "text-[#9BE274]" : "text-[#A1A1A6]"
             }`}
           >
@@ -111,11 +105,11 @@ export function SummaryCards({
 
         <Surface className="relative px-4 pb-4 pt-3.5">
           <div className="flex items-start gap-1 text-[#9BE274]">
-            <Gift className="h-8 w-8 stroke-[2.3]" />
-            <Sparkles className="h-4 w-4 stroke-[2.2]" />
+            <Gift className="h-6 w-6 stroke-[2.2]" />
+            <Sparkles className="h-3.5 w-3.5 stroke-[2.2]" />
           </div>
-          <p className="mt-2 text-[0.98rem] font-medium leading-[1.18] text-[#A1A1A6]">На радости</p>
-          <p className="mt-3 whitespace-nowrap text-[clamp(2rem,5.1vw,2.45rem)] font-medium leading-none tracking-[-0.01em] text-[#9BE274]">
+          <p className="mt-2 text-[0.58rem] font-medium leading-[1.16] text-[#8D8D93]">На радости</p>
+          <p className="mt-2 overflow-hidden text-ellipsis whitespace-nowrap text-[clamp(1rem,2.6vw,1.35rem)] font-medium leading-none tracking-[-0.01em] text-[#9BE274]">
             {joyAmount === null ? "—" : formatRubles(Math.max(0, joyAmount))}
           </p>
         </Surface>
