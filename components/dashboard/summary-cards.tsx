@@ -104,7 +104,7 @@ export function SummaryCards({
       </Surface>
 
       <div className="grid grid-cols-3 gap-3">
-        <Surface className="relative flex min-h-[154px] flex-col px-3.5 pb-3 pt-3">
+        <Surface className="relative flex h-[154px] flex-col px-3.5 pb-3 pt-3">
           <div className="flex items-start gap-1 text-[#9BE274]">
             <Target className="h-6 w-6 stroke-[2.2]" />
             <Sparkles className="h-3.5 w-3.5 stroke-[2.2]" />
@@ -115,7 +115,7 @@ export function SummaryCards({
           </p>
         </Surface>
 
-        <Surface className="relative flex min-h-[154px] flex-col px-3.5 pb-3 pt-3">
+        <Surface className="relative flex h-[154px] flex-col px-3.5 pb-3 pt-3">
           <div className="flex items-start gap-1 text-[#9BE274]">
             <Shield className="h-6 w-6 stroke-[2.2]" />
             <Sparkles className="h-3.5 w-3.5 stroke-[2.2]" />
@@ -133,7 +133,7 @@ export function SummaryCards({
           </span>
         </Surface>
 
-        <Surface className="relative flex min-h-[154px] flex-col px-3.5 pb-3 pt-3">
+        <Surface className="relative flex h-[154px] flex-col px-3.5 pb-3 pt-3">
           <div className="flex items-start gap-1 text-[#9BE274]">
             <Gift className="h-6 w-6 stroke-[2.2]" />
             <Sparkles className="h-3.5 w-3.5 stroke-[2.2]" />
